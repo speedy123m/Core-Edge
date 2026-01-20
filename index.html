@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Core Edge — Offline AI Study Assistant</title>
+  <meta name="description" content="Core Edge — Offline AI Study Assistant. Summarize textbooks, generate exams, plan study sessions, and more — all locally." />
+  <style>
+    /* Embedded style.css — Dark, minimal, modern */
+    :root{
+      --bg:#0b0f14;
+      --panel:#0f1720;
+      --muted:#9aa6b2;
+      --accent:#6ee7b7;
+      --accent-2:#60a5fa;
+      --glass: rgba(255,255,255,0.03);
+      --card: rgba(255,255,255,0.02);
+      --radius: 12px;
+      --max-width:1100px;
+      --gap:22px;
+      --text: #e6eef3;
+      --subtext:#a7b4bf;
+      font-synthesis: none;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg), #061018 200px);
+      color:var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container{
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:32px 20px;
+    }
+
+    .site-header{
+      position:sticky;
+      top:0;
+      z-index:30;
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg, rgba(7,11,14,0.6), rgba(7,11,14,0.35));
+      border-bottom:1px solid rgba(255,255,255,0.02);
+    }
+    .header-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{color:var(--accent);border-radius:8px;padding:4px;background:linear-gradient(135deg,#063b2f,#0b5a4a)}
+    .product{font-weight:700;font-size:16px}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+    .nav{display:flex;gap:14px;align-items:center}
+    .nav a{color:var(--subtext);text-decoration:none;font-size:14px;padding:8px;border-radius:8px}
+    .nav a:hover{color:var(--text);background:var(--glass)}
+    .repo{border:1px solid rgba(255,255,255,0.03);padding:8px 10px}
+    .nav-toggle{display:none;border:0;background:transparent;padding:8px;margin-left:12px}
+    .nav-toggle span{display:block;width:18px;height:2px;background:var(--text);margin:3px 0;border-radius:2px;opacity:.9}
+
+    .hero{padding:48px 0 36px}
+    .hero-inner{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:center}
+    .hero-copy h1{font-size:40px;margin:0 0 8px;letter-spacing:-0.7px}
+    .tagline{color:var(--accent-2);font-weight:600;margin:0 0 12px}
+    .lead{color:var(--subtext);max-width:60ch;margin-bottom:18px}
+    .hero-ctas{display:flex;gap:12px;margin-bottom:16px}
+    .btn{
+      display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;color:var(--text)
+    }
+    .btn.primary{background:linear-gradient(90deg,var(--accent), var(--accent-2));color:#00231a;box-shadow:0 6px 20px rgba(6,40,36,0.18)}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--subtext)}
+    .btn.full{width:100%;display:inline-block;text-align:center}
+
+    .quick-list{display:flex;gap:12px;margin-top:8px;color:var(--muted);list-style:none;padding:0}
+    .quick-list li{background:var(--card);padding:8px 10px;border-radius:8px;font-size:13px}
+
+    .hero-visual .device{width:360px;border-radius:18px;padding:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow: 0 8px 30px rgba(2,6,10,0.7);border:1px solid rgba(255,255,255,0.02)}
+    .device-screen{height:220px;border-radius:12px;background:linear-gradient(180deg, rgba(11,18,24,0.6), rgba(9,14,18,0.4));padding:14px}
+    .mock-module{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));padding:12px;border-radius:10px}
+    .m-header{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:8px}
+    .m-line{height:8px;background:rgba(255,255,255,0.02);border-radius:6px;margin:6px 0}
+    .m-line.short{width:60%}
+    .m-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .m-card{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;font-size:12px;text-align:center}
+
+    .section{padding:36px 0}
+    .section.alt{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+    .section-title{font-size:20px;margin:0 0 6px}
+    .section-sub{color:var(--muted);margin-bottom:18px}
+
+    .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .feature-card{background:var(--panel);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);transition:transform .18s ease,box-shadow .18s ease}
+    .feature-card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(2,6,10,0.6)}
+    .feature-card h3{margin:10px 0 6px}
+    .feature-card p{color:var(--muted);margin:0}
+    .feature-card .icon{width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent);}
+
+    .tiers{display:flex;gap:16px}
+    .tier-card{flex:1;padding:18px;border-radius:12px;background:var(--card);border:1px solid rgba(255,255,255,0.02)}
+    .tier-card.highlight{box-shadow:0 8px 30px rgba(6,50,40,0.18);border:1px solid rgba(255,255,255,0.03)}
+    .tier-card h3{margin:0 0 6px}
+    .tier-sub{color:var(--muted);font-size:13px;margin-bottom:8px}
+    .specs{font-weight:700;margin-bottom:8px}
+    .note{color:var(--muted);font-size:13px}
+
+    .download-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+    .download-card{padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
+    .d-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+    .d-title{font-weight:700}
+    .d-sub{color:var(--muted);font-size:13px}
+    .d-price{font-size:13px;color:var(--muted)}
+    .d-desc{color:var(--muted);margin-bottom:12px}
+    .meta{font-size:12px;color:var(--muted);margin-top:10px}
+
+    .coming-soon .disabled{opacity:0.45;pointer-events:none}
+    .btn.disabled{cursor:not-allowed;background:transparent;border:1px dashed rgba(255,255,255,0.03);color:var(--muted)}
+
+    .trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+    .trust-card{padding:18px;border-radius:12px;background:var(--panel);border:1px solid rgba(255,255,255,0.02)}
+
+    .site-footer{border-top:1px solid rgba(255,255,255,0.02);padding:18px 0;margin-top:30px;background:transparent}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .footer-brand{display:flex;gap:8px;align-items:center;color:var(--muted);text-decoration:none}
+    .small{font-size:13px}
+    .muted{color:var(--muted)}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .hero-inner{grid-template-columns:1fr 320px}
+      .features-grid{grid-template-columns:repeat(2,1fr)}
+      .download-grid{grid-template-columns:repeat(2,1fr)}
+      .nav a{display:none}
+      .nav-toggle{display:block}
+      .nav.open a{display:block;padding:10px 12px;margin-top:6px;background:transparent}
+      .nav.open{position:absolute;right:20px;top:64px;background:linear-gradient(180deg, rgba(6,10,13,0.9), rgba(6,10,13,0.9));padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+    }
+
+    @media (max-width:640px){
+      .hero-inner{grid-template-columns:1fr;gap:18px}
+      .hero-visual{display:none}
+      .features-grid{grid-template-columns:1fr}
+      .download-grid{grid-template-columns:1fr}
+      .tiers{flex-direction:column}
+    }
+  </style>
+</head>
+<body class="dark">
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <svg class="logo" width="36" height="36" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="4" fill="currentColor" />
+          <path d="M6 16l4-8 6 8" stroke="black" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <div class="product">Core Edge</div>
+          <div class="sub">Offline AI Study Assistant</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#download">Download</a>
+        <a href="#trust">Privacy</a>
+        <a class="repo" href="https://github.com/core-edge/core-edge-desktop" target="_blank" rel="noopener">GitHub</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <h1>Core Edge</h1>
+          <p class="tagline">Offline AI Study Assistant</p>
+          <p class="lead">Summarize textbooks, generate exams, plan study sessions, and read material aloud — all locally on your machine. No cloud. No tracking.</p>
+
+          <div class="hero-ctas">
+            <a class="btn primary" href="https://github.com/core-edge/core-edge-desktop/releases" target="_blank" rel="noopener">Download</a>
+            <a class="btn ghost" href="#features">Learn more</a>
+          </div>
+
+          <ul class="quick-list" aria-hidden="true">
+            <li>Local AI — runs on your device</li>
+            <li>Works with PDFs & images</li>
+            <li>Lightweight & private</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="device">
+            <div class="device-screen">
+              <div class="mock-module">
+                <div class="m-header">Summarize • Exam • Planner</div>
+                <div class="m-line"></div>
+                <div class="m-line short"></div>
+                <div class="m-grid">
+                  <div class="m-card">PDF Summarizer</div>
+                  <div class="m-card">Exam Generator</div>
+                  <div class="m-card">Study Planner</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <h2 class="section-title">Features</h2>
+        <p class="section-sub">Focused tools built for studying, with a clean developer-grade UI.</p>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6z" fill="currentColor"/></svg>
+            </div>
+            <h3>PDF / Textbook Summarizer</h3>
+            <p>Upload PDFs or textbook text and get concise summaries, chapter outlines, and flashcard-ready notes.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14z" fill="currentColor"/></svg>
+            </div>
+            <h3>Homework Helper (text + images)</h3>
+            <p>Explain problems step-by-step and analyze diagrams or screenshots — all processed locally.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="3" y="8" width="18" height="13" rx="2" fill="currentColor"/></svg>
+            </div>
+            <h3>Exam Generator (difficulty-based)</h3>
+            <p>Create quizzes and full exams tailored by difficulty, topic coverage, and question type.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 10h6v6H7z" fill="currentColor"/><path d="M3 5h18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Study Planner (Pomodoro-style)</h3>
+            <p>Generate study plans with Pomodoro sessions, breaks, and subject prioritization.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 9v6a3 3 0 0 0 3 3h1" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 9v6a3 3 0 0 0 3 3h1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <h3>Read-For-You (Text-to-Speech)</h3>
+            <p>Listen to chapters or notes with adjustable speed and voice options — processed locally.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="requirements" class="section alt">
+      <div class="container">
+        <h2 class="section-title">System requirements</h2>
+        <p class="section-sub">Choose the build that matches your machine. AI runs locally — performance scales with RAM.</p>
+
+        <div class="tiers">
+          <div class="tier-card">
+            <h3>Lite</h3>
+            <div class="tier-sub">For lightweight usage</div>
+            <div class="specs"><strong>RAM:</strong> 4 GB</div>
+            <p class="note">Best for quick summaries and small PDFs.</p>
+          </div>
+
+          <div class="tier-card highlight">
+            <h3>Standard</h3>
+            <div class="tier-sub">Balanced performance</div>
+            <div class="specs"><strong>RAM:</strong> 8 GB</div>
+            <p class="note">Recommended for most students.</p>
+          </div>
+
+          <div class="tier-card">
+            <h3>Pro</h3>
+            <div class="tier-sub">High-performance workflows</div>
+            <div class="specs"><strong>RAM:</strong> 12+ GB</div>
+            <p class="note">For large textbooks and faster model performance.</p>
+          </div>
+        </div>
+
+        <p class="small muted"><strong>Note:</strong> All processing is local — available RAM and CPU determine which model sizes you can run smoothly.</p>
+      </div>
+    </section>
+
+    <section id="download" class="section">
+      <div class="container">
+        <h2 class="section-title">Download</h2>
+        <p class="section-sub">Windows builds only for now. Download links point to GitHub Releases.</p>
+
+        <div class="download-grid">
+          <div class="download-card">
+            <div class="d-header">
+              <div>
+                <div class="d-title">Core Edge — Lite (Windows)</div>
+                <div class="d-sub">4 GB RAM</div>
+              </div>
+              <div class="d-price">Free</div>
+            </div>
+
+            <p class="d-desc">Compact installer for basic features and small files.</p>
+
+            <!-- Replace href with direct asset URL on GitHub Releases for Lite installer -->
+            <a class="btn full" href="https://github.com/core-edge/core-edge-desktop/releases" target="_blank" rel="noopener">Download (Windows)</a>
+
+            <div class="meta">SHA256 & release notes available on the Releases page.</div>
+          </div>
+
+          <div class="download-card">
+            <div class="d-header">
+              <div>
+                <div class="d-title">Core Edge — Standard (Windows)</div>
+                <div class="d-sub">8 GB RAM</div>
+              </div>
+              <div class="d-price">Recommended</div>
+            </div>
+
+            <p class="d-desc">Balanced build with broader model support and better throughput.</p>
+
+            <!-- Replace href with direct asset URL on GitHub Releases for Standard installer -->
+            <a class="btn full" href="https://github.com/core-edge/core-edge-desktop/releases" target="_blank" rel="noopener">Download (Windows)</a>
+
+            <div class="meta">Includes offline docs and sample datasets.</div>
+          </div>
+
+          <div class="download-card coming-soon">
+            <div class="d-header">
+              <div>
+                <div class="d-title">Core Edge — Pro (Windows)</div>
+                <div class="d-sub">12+ GB RAM</div>
+              </div>
+              <div class="d-price">Power</div>
+            </div>
+
+            <p class="d-desc">High-memory build optimized for huge PDFs and faster local models.</p>
+
+            <!-- Coming soon: disabled button -->
+            <a class="btn full disabled" href="#" aria-disabled="true" tabindex="-1">Coming Soon</a>
+
+            <div class="meta">Pro builds and advanced models arriving soon.</div>
+          </div>
+        </div>
+
+        <p class="small muted">Downloads are hosted externally on GitHub Releases. The website does not host binaries.</p>
+      </div>
+    </section>
+
+    <section id="trust" class="section alt trust">
+      <div class="container">
+        <h2 class="section-title">Trust & privacy</h2>
+        <p class="section-sub">Designed for privacy-first studying.</p>
+
+        <div class="trust-grid">
+          <div class="trust-card">
+            <h3>No cloud</h3>
+            <p>All AI runs locally on your device — nothing leaves your machine unless you explicitly export files.</p>
+          </div>
+
+          <div class="trust-card">
+            <h3>No tracking</h3>
+            <p>We do not include analytics, telemetry, or user tracking. No accounts, no signup required.</p>
+          </div>
+
+          <div class="trust-card">
+            <h3>Open & auditable</h3>
+            <p>Repo and releases on GitHub let you verify binaries and see release notes and checksums.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <a class="footer-brand" href="https://github.com/core-edge/core-edge-desktop" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.1 1.7 1.1 1 .1 1.6-.8 1.6-.8.9-1.6 2.4-1.1 3-.8.1-.7.4-1.1.7-1.3-2.6-.3-5.3-1.3-5.3-5.9 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C18.1 3.9 19 4.2 19 4.2c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.6-2.7 5.6-5.3 5.9.3.2.6.7.6 1.4v2.1c0 .3.2.7.8.6A12 12 0 0 0 12 .5z" fill="currentColor"/></svg>
+          core-edge/core-edge-desktop
+        </a>
+        <div class="muted small">Version: <span id="version">v0.0.0</span> &nbsp;•&nbsp; License: MIT</div>
+      </div>
+
+      <div class="footer-right">
+        <div class="muted small">Made for students & devs — private by design.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    (function(){
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        nav.classList.toggle('open');
+      });
+    })();
+  </script>
+</body>
+</html>
